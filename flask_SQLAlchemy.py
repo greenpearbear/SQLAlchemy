@@ -72,20 +72,50 @@ def from_json_to_database():
 from_json_to_database()
 
 
-@app.route('/users', methods=['GET'])
+@app.route('/users', methods=['GET', 'POST'])
 def all_users():
-    result = []
-    users = Users.query.all()
-    for user in users:
-        result.append(all_function.return_request_user(user))
-    return jsonify(result)
+    if request.method == 'GET':
+        result = []
+        users = Users.query.all()
+        for user in users:
+            result.append(all_function.return_request_user(user))
+        return jsonify(result)
+    if request.method == 'POST':
+        data = request.json
+        user = Users(first_name=data.get('first_name'),
+                     last_name=data.get('last_name'),
+                     age=data.get('age'),
+                     email=data.get('email'),
+                     role=data.get('role'),
+                     phone=data.get('phone'))
+        db.session.add(user)
+        db.session.commit()
+        db.session.close()
+        return jsonify((all_function.return_request_user(user)))
 
 
-@app.route('/users/<int:id_user>', methods=['GET'])
+@app.route('/users/<int:id_user>', methods=['GET', 'PUT', 'DELETE'])
 def one_user(id_user):
-    user = Users.query.get(id_user)
-    return jsonify(all_function.return_request_user(user))
-
+    if request.method == 'GET':
+        user = Users.query.get(id_user)
+        return jsonify(all_function.return_request_user(user))
+    if request.method == 'PUT':
+        data = request.json
+        user = Users.query.get(id_user)
+        user.first_name = data.get('first_name')
+        user.last_name = data.get('last_name')
+        user.age = data.get('age')
+        user.email = data.get('email')
+        user.role = data.get('role')
+        user.phone = data.get('phone')
+        db.session.add(user)
+        db.session.commit()
+        db.session.close()
+    if request.method == 'DELETE':
+        user = Users.query.get(id_user)
+        db.session.delete(user)
+        db.session.commit()
+        db.session.close()
 
 @app.route('/orders', methods=['GET'])
 def all_orders():

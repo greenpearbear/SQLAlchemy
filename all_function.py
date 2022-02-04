@@ -32,25 +32,3 @@ def return_request_offer(table):
         "executor_id": table.executor_id}
 
 
-def from_json_to_database():
-    data_list = use_json.read_json('Users')
-    for data in data_list:
-        user = flask_SQLAlchemy.Users(id=data['id'], first_name=data['first_name'], last_name=data['last_name'],
-                                      age=data['age'], email=data['email'], role=data['role'], phone=data['phone'])
-        flask_SQLAlchemy.db.session.add(user)
-        flask_SQLAlchemy.db.session.commit()
-    flask_SQLAlchemy.db.session.close()
-    data_list = use_json.read_json('Orders')
-    for data in data_list:
-        user = flask_SQLAlchemy.Users(id=data['id'], name=data['name'], description=data['description'],
-                                      star_date=data['star_date'], end_date=data['end_date'], address=data['address'],
-                                      price=data['price'], customer_id=data['customer_id'])
-        flask_SQLAlchemy.db.session.add(user)
-        flask_SQLAlchemy.db.session.commit()
-    flask_SQLAlchemy.db.session.close()
-    data_list = use_json.read_json('Offers')
-    for data in data_list:
-        user = flask_SQLAlchemy.Users(id=data['id'], order_id=data['order_id'], executor_id=data['executor_id'])
-        flask_SQLAlchemy.db.session.add(user)
-        flask_SQLAlchemy.db.session.commit()
-    flask_SQLAlchemy.db.session.close()
