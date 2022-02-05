@@ -1,7 +1,3 @@
-import flask_SQLAlchemy
-import use_json
-
-
 def return_request_user(table):
     return {
         "id": table.id,

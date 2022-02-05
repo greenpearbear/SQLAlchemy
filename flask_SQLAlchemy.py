@@ -10,7 +10,7 @@ db = SQLAlchemy(app)
 
 
 class Users(db.Model):
-    __tablename__ = 'users'
+    __table_name__ = 'users'
     id = db.Column(db.INTEGER, primary_key=True)
     first_name = db.Column(db.TEXT)
     last_name = db.Column(db.TEXT)
@@ -21,7 +21,7 @@ class Users(db.Model):
 
 
 class Orders(db.Model):
-    __tablename__ = 'orders'
+    __table_name__ = 'orders'
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.TEXT)
     description = db.Column(db.TEXT)
@@ -35,7 +35,7 @@ class Orders(db.Model):
 
 
 class Offers(db.Model):
-    __tablename__ = 'offers'
+    __table_name__ = 'offers'
     id = db.Column(db.INTEGER, primary_key=True)
     order_id = db.Column(db.INTEGER, db.ForeignKey('orders.id'))
     executor_id = db.Column(db.INTEGER, db.ForeignKey('users.id'))
@@ -111,40 +111,103 @@ def one_user(id_user):
         db.session.add(user)
         db.session.commit()
         db.session.close()
+        return jsonify(all_function.return_request_user(user))
     if request.method == 'DELETE':
         user = Users.query.get(id_user)
         db.session.delete(user)
         db.session.commit()
         db.session.close()
+        return 'Пользователь удален'
 
-@app.route('/orders', methods=['GET'])
+
+@app.route('/orders', methods=['GET', 'POST'])
 def all_orders():
-    result = []
-    orders = Orders.query.all()
-    for order in orders:
-        result.append(all_function.return_request_order(order))
-    return jsonify(result)
+    if request.method == 'GET':
+        result = []
+        orders = Orders.query.all()
+        for order in orders:
+            result.append(all_function.return_request_order(order))
+        return jsonify(result)
+    if request.method == 'POST':
+        data = request.json
+        order = Orders(name=data.get('name'),
+                       description=data.get('description'),
+                       start_date=data.get('start_date'),
+                       end_date=data.get('end_date'),
+                       address=data.get('address'),
+                       price=data.get('price'),
+                       customer_id=data.get('customer_id'))
+        db.session.add(order)
+        db.session.commit()
+        db.session.close()
+        return jsonify((all_function.return_request_order(order)))
 
 
-@app.route('/orders/<int:id_order>', methods=['GET'])
+@app.route('/orders/<int:id_order>', methods=['GET', 'PUT', 'DELETE'])
 def one_order(id_order):
-    order = Orders.query.get(id_order)
-    return jsonify(all_function.return_request_order(order))
+    if request.method == 'GET':
+        order = Orders.query.get(id_order)
+        return jsonify(all_function.return_request_order(order))
+    if request.method == 'PUT':
+        data = request.json
+        order = Orders.query.get(id_order)
+        order.name = data.get('name')
+        order.description = data.get('description')
+        order.start_date = data.get('start_date')
+        order.end_date = data.get('end_date')
+        order.address = data.get('address')
+        order.price = data.get('price')
+        order.customer_id = data.get('customer_id')
+        db.session.add(order)
+        db.session.commit()
+        db.session.close()
+        return jsonify(all_function.return_request_order(order))
+    if request.method == 'DELETE':
+        order = Orders.query.get(id_order)
+        db.session.delete(order)
+        db.session.commit()
+        db.session.close()
+        return 'Заказ удален'
 
 
-@app.route('/offers', methods=['GET'])
+@app.route('/offers', methods=['GET', 'POST'])
 def all_offers():
-    result = []
-    offers = Offers.query.all()
-    for offer in offers:
-        result.append(all_function.return_request_offer(offer))
-    return jsonify(result)
+    if request.method == 'GET':
+        result = []
+        offers = Offers.query.all()
+        for offer in offers:
+            result.append(all_function.return_request_offer(offer))
+        return jsonify(result)
+    if request.method == 'POST':
+        data = request.json
+        offer = Offers(order_id=data.get('order_id'),
+                       executor_id=data.get('executor_id'))
+        db.session.add(offer)
+        db.session.commit()
+        db.session.close()
+        return jsonify((all_function.return_request_offer(offer)))
 
 
-@app.route('/orders/<int:id_offer>', methods=['GET'])
+@app.route('/offers/<int:id_offer>', methods=['GET', 'PUT', 'DELETE'])
 def one_offers(id_offer):
-    offer = Offers.query.get(id_offer)
-    return jsonify(all_function.return_request_user(offer))
+    if request.method == 'GET':
+        offer = Offers.query.get(id_offer)
+        return jsonify(all_function.return_request_offer(offer))
+    if request.method == 'PUT':
+        data = request.json
+        offer = Offers.query.get(id_offer)
+        offer.order_id = data.get('order_id')
+        offer.executor_id = data.get('executor_id')
+        db.session.add(offer)
+        db.session.commit()
+        db.session.close()
+        return jsonify(all_function.return_request_offer(offer))
+    if request.method == 'DELETE':
+        offer = Offers.query.get(id_offer)
+        db.session.delete(offer)
+        db.session.commit()
+        db.session.close()
+        return 'Оффер удален'
 
 
 if __name__ == "__main__":
